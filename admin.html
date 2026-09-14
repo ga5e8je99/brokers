@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FXENGIN | لوحة تحكم الشركاء وفحص الوكالة (Admin Dashboard)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-dark: #01071E;
+      --bg-surface: #06142F;
+      --bg-elevated: #0A1B3D;
+      --bg-highlight: #0D224D;
+      --border: rgba(18, 49, 92, 0.6);
+      --border-focus: #0488F8;
+      
+      --accent-gradient: linear-gradient(135deg, #FA5A04 0%, #FB8704 100%);
+      --accent: #FB8704;
+      --accent-hover: #FA5A04;
+      --primary: #0488F8;
+      --primary-gradient: linear-gradient(135deg, #0458EC 0%, #0488F8 100%);
+      
+      --success: #16C784;
+      --warning: #FBBF24;
+      --error: #F6465D;
+      
+      --text-main: #F5F7FA;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      
+      --font-ar: 'Cairo', -apple-system, sans-serif;
+      --font-en: 'Montserrat', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-ar);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+    }
+
+    /* Top Navigation Header */
+    .admin-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(1, 7, 30, 0.94);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand-badge {
+      background: rgba(251, 135, 4, 0.12);
+      border: 1px solid rgba(251, 135, 4, 0.3);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(6, 20, 47, 0.8);
+      border: 1px solid var(--border);
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+    .status-dot.offline {
+      background: var(--error);
+      box-shadow: 0 0 8px var(--error);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      user-select: none;
+    }
+    .btn-primary {
+      background: var(--accent-gradient);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(251, 135, 4, 0.25);
+    }
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: rgba(4, 136, 248, 0.12);
+      border: 1px solid rgba(4, 136, 248, 0.35);
+      color: var(--primary);
+    }
+    .btn-secondary:hover {
+      background: rgba(4, 136, 248, 0.22);
+    }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .btn-ghost:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 11.5px;
+      border-radius: 6px;
+    }
+
+    /* Main Container */
+    .admin-container {
+      max-width: 1300px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+      flex: 1;
+    }
+
+    /* KPI Metrics Cards */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .metric-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--accent-gradient);
+    }
+    .metric-card.green::before { background: var(--success); }
+    .metric-card.blue::before { background: var(--primary); }
+    .metric-card.gold::before { background: var(--warning); }
+
+    .metric-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .metric-val {
+      font-size: 26px;
+      font-weight: 900;
+      font-family: var(--font-mono);
+      color: var(--text-main);
+    }
+
+    /* Nav Tabs */
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+      padding-bottom: 8px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .tab-btn.active {
+      background: rgba(251, 135, 4, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(251, 135, 4, 0.3);
+    }
+    .tab-btn:hover:not(.active) {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    /* Content Cards */
+    .panel-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      margin-bottom: 30px;
+    }
+    .panel-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      background: rgba(10, 27, 61, 0.4);
+    }
+    .panel-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Tables */
+    .table-responsive {
+      overflow-x: auto;
+      width: 100%;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: right;
+      font-size: 13px;
+    }
+    th {
+      background: rgba(1, 7, 30, 0.7);
+      color: var(--text-muted);
+      font-weight: 700;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(18, 49, 92, 0.35);
+      vertical-align: middle;
+      color: var(--text-main);
+    }
+    tr:hover td {
+      background: rgba(10, 27, 61, 0.4);
+    }
+
+    /* Badges */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .tag-success {
+      background: rgba(22, 199, 132, 0.12);
+      border: 1px solid rgba(22, 199, 132, 0.35);
+      color: var(--success);
+    }
+    .tag-warning {
+      background: rgba(251, 191, 36, 0.12);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      color: var(--warning);
+    }
+    .tag-error {
+      background: rgba(246, 70, 93, 0.12);
+      border: 1px solid rgba(246, 70, 93, 0.35);
+      color: var(--error);
+    }
+    .tag-blue {
+      background: rgba(4, 136, 248, 0.12);
+      border: 1px solid rgba(4, 136, 248, 0.35);
+      color: var(--primary);
+    }
+
+    /* Modal Sheet */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0, 3, 13, 0.85);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 650px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-head {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: var(--bg-elevated);
+      z-index: 5;
+    }
+    .modal-body {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Form Inputs */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .form-control {
+      width: 100%;
+      background: rgba(1, 7, 30, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .form-control:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 2px rgba(4, 136, 248, 0.15);
+    }
+    .form-control.mono {
+      font-family: var(--font-mono);
+      direction: ltr;
+      text-align: left;
+    }
+
+    /* JSON Log Box */
+    .json-box {
+      background: #020617;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #38BDF8;
+      max-height: 250px;
+      overflow-y: auto;
+      direction: ltr;
+      text-align: left;
+      white-space: pre-wrap;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      z-index: 9999;
+      background: rgba(6, 20, 47, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 13px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+      animation: toastIn 0.3s ease;
+    }
+    @keyframes toastIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Header -->
+  <header class="admin-header">
+    <div class="brand-group">
+      <div style="width: 34px; height: 34px; border-radius: 8px; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; font-family: var(--font-en);">
+        FX
+      </div>
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-family: var(--font-en); font-weight: 900; font-size: 16px; letter-spacing: 0.5px;">FXENGIN</span>
+          <span class="brand-badge">ADMIN DASHBOARD</span>
+        </div>
+        <div style="font-size: 10.5px; color: var(--text-muted);">نظام إدارة الشركاء وفحص الوكالات البرمجي (IB Agency Checker)</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div id="backendStatusBadge" class="status-indicator">
+        <span id="backendStatusDot" class="status-dot"></span>
+        <span id="backendStatusText">جاري فحص الاتصال بالسيرفر...</span>
+      </div>
+
+      <a href="brokers.html" target="_blank" class="btn btn-secondary btn-sm">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+        <span>فتح صفحة المتداول (User Page)</span>
+      </a>
+
+      <button type="button" onclick="loadAllData()" class="btn btn-ghost btn-sm" title="تحديث البيانات">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        <span>تحديث</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 2. Main Admin Container -->
+  <main class="admin-container">
+    
+    <!-- KPI Metrics -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div>
+          <div class="metric-title">إجمالي الوسطاء المسجلين</div>
+          <div id="metricTotalBrokers" class="metric-val">0</div>
+        </div>
+        <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(251, 135, 4, 0.12); display: flex; align-items: center; justify-content: center; color: var(--accent);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+      </div>
+
+      <div class="metric-card blue">
+        <div>
+          <div class="metric-title">طلبات تفعيل الـ VIP للمتداولين</div>
+          <div id="metricTotalVip" class="metric-val">0</div>
+        </div>
+        <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(4, 136, 248, 0.12); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+      </div>
+
+      <div class="metric-card green">
+        <div>
+          <div class="metric-title">حسابات مؤكدة تحت الوكالة (API)</div>
+          <div id="metricVerifiedVip" class="metric-val">0</div>
+        </div>
+        <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(22, 199, 132, 0.12); display: flex; align-items: center; justify-content: center; color: var(--success);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+      </div>
+
+      <div class="metric-card gold">
+        <div>
+          <div class="metric-title">قيد المراجعة اليدوية</div>
+          <div id="metricPendingVip" class="metric-val">0</div>
+        </div>
+        <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(251, 191, 36, 0.12); display: flex; align-items: center; justify-content: center; color: var(--warning);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <button type="button" class="tab-btn active" onclick="switchTab('brokersTab')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+        <span>إدارة الوسطاء والشركاء (Brokers)</span>
+      </button>
+
+      <button type="button" class="tab-btn" onclick="switchTab('vipTab')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        <span>طلبات المتداولين وفحص الوكالة (VIP Verification)</span>
+      </button>
+
+      <button type="button" class="tab-btn" onclick="switchTab('agencyTesterTab')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        <span>محاكي فحص الحساب المباشر (Agency Checker Simulator)</span>
+      </button>
+    </div>
+
+    <!-- Tab 1: Brokers Management -->
+    <section id="brokersTab" class="tab-content">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            <span>قائمة الوسطاء وروابط الداشبورد والـ API</span>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="openAddBrokerModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>إضافة وسيط جديد</span>
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>الوسيط</th>
+                <th>التصنيف</th>
+                <th>كود الوكالة (IB Code)</th>
+                <th>لوحة شريك الوسيط (Dashboard)</th>
+                <th>فحص الـ API التلقائي</th>
+                <th>الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="brokersTableBody">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                  جاري تحميل الوسطاء...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 2: VIP Requests & Agency Checking -->
+    <section id="vipTab" class="tab-content" style="display: none;">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>سجل حسابات المتداولين المقدمة ونتائج الفحص</span>
+          </div>
+
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <select id="vipFilterStatus" onchange="loadVipRequests()" class="form-control" style="width: auto; height: 36px; padding: 4px 12px;">
+              <option value="">جميع الحالات</option>
+              <option value="PENDING">قيد الفحص (Pending)</option>
+              <option value="VERIFIED_UNDER_AGENCY">مؤكد تحت الوكالة (Verified)</option>
+              <option value="NOT_UNDER_AGENCY">غير مسجل بالوكالة (Not in IB)</option>
+              <option value="APPROVED">مفعل ومعتمد (Approved)</option>
+            </select>
+            <button type="button" class="btn btn-primary btn-sm" onclick="openAddTestUserModal()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>+ تجربة إضافة مستخدم</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>رقم حساب التداول</th>
+                <th>الوسيط</th>
+                <th>يوزر تليجرام</th>
+                <th>حالة الوكالة (Agency Status)</th>
+                <th>تفاصيل الرد والرسالة</th>
+                <th>تاريخ الطلب</th>
+                <th>الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="vipTableBody">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                  جاري تحميل طلبات الـ VIP...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Agency Checker Playground -->
+    <section id="agencyTesterTab" class="tab-content" style="display: none;">
+      <div class="panel-card" style="max-width: 800px; margin: 0 auto;">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span>اختبار مباشر لدالة فحص الوكالة (Agency Checker Test)</span>
+          </div>
+        </div>
+
+        <div style="padding: 24px;">
+          <form id="simulatorForm" onsubmit="handleTestAgencyCheck(event)" style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="form-group">
+              <label>اختر الوسيط المراد اختباره *</label>
+              <select id="simBrokerSelect" class="form-control" required></select>
+            </div>
+
+            <div class="form-group">
+              <label>رقم حساب التداول للتجربة (MT4 / MT5) *</label>
+              <input type="text" id="simAccountNumber" class="form-control mono" placeholder="مثال: 8594021" value="8594021" required />
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="height: 44px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span>تشغيل دالة الفحص (checkAccountUnderAgency)</span>
+            </button>
+          </form>
+
+          <div style="margin-top: 24px;">
+            <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text-muted);">
+              نتيجة الفحص المباشر ورد الـ API:
+            </div>
+            <pre id="simResultJson" class="json-box">// النتيجة ستظهر هنا بمجرد الضغط على تشغيل الفحص...</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Add/Edit Broker Modal -->
+  <div id="brokerModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <h3 id="modalTitle" style="font-size: 15px; font-weight: 800;">إضافة وسيط جديد إلى المنصة</h3>
+          <span style="font-size: 11.5px; color: var(--text-muted);">إضافة بيانات الوسيط، روابط الداشبورد، ومعلومات فحص الوكالة</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="fillSampleBrokerData()" title="تعبئة نموذج جاهز سريع للتجربة">⚡ تعبئة تجريبية</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="closeBrokerModal()">✕</button>
+        </div>
+      </div>
+
+      <form id="brokerForm" onsubmit="handleSaveBroker(event)">
+        <div class="modal-body">
+          <input type="hidden" id="brokerEditId" />
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label>اسم الوسيط (Broker Name) *</label>
+              <input type="text" id="bName" class="form-control" placeholder="مثال: XM Global" required />
+            </div>
+            <div class="form-group">
+              <label>المعرف البرمجي (Slug) *</label>
+              <input type="text" id="bSlug" class="form-control mono" placeholder="مثال: xm" required />
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label>التصنيف (Category) *</label>
+              <select id="bCategory" class="form-control">
+                <option value="forex">وسطاء الفوركس والسلع (forex)</option>
+                <option value="prop">شركات التمويل (prop)</option>
+                <option value="crypto">عملات رقمية (crypto)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>التقييم (Rating) *</label>
+              <input type="number" step="0.01" min="1" max="5" id="bRating" class="form-control mono" value="4.9" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>رابط الشعار (Logo URL or base64) *</label>
+            <input type="text" id="bLogo" class="form-control mono" placeholder="https://.../logo.png" required />
+          </div>
+
+          <div class="form-group">
+            <label>الشارة الترويجية (Badge) بالعربية</label>
+            <input type="text" id="bBadgeAr" class="form-control" placeholder="تراخيص عالمية • حماية من الرصيد السالب" />
+          </div>
+
+          <div class="form-group">
+            <label>رابط الإحالة المباشر للمتداولين (Affiliate Real Link) 🔗 *</label>
+            <input type="url" id="bAffiliateRealLink" class="form-control mono" placeholder="https://broker.com/register?ref=FXENGIN" required />
+            <small style="font-size: 11px; color: var(--text-muted);">هذا هو الرابط الذي يُفتح للمتداول عند الضغط على "افتح حسابك" في بطاقة الوسيط.</small>
+          </div>
+
+          <div class="form-group">
+            <label>وصف الوسيط ومميزاته للمتداولين بالعربية</label>
+            <textarea id="bDescriptionAr" class="form-control" rows="2" placeholder="اكتب نبذة ومميزات الوسيط التي ستظهر في كرت الوسيط..."></textarea>
+          </div>
+
+          <!-- AUTO-TRANSLATION PREVIEW & ENGLISH SYNC -->
+          <div style="background: rgba(4, 136, 248, 0.07); border: 1px solid rgba(4, 136, 248, 0.25); border-radius: 12px; padding: 12px 14px; margin: 4px 0 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 12px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span>الترجمة الإنجليزية التلقائية (Auto-Translation ✨)</span>
+              </span>
+              <span style="font-size: 11px; color: var(--success); font-weight: 700; background: rgba(22, 199, 132, 0.12); padding: 2px 8px; border-radius: 6px;">تتولد آلياً بنقرة واحدة</span>
+            </div>
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label style="font-size: 11px; color: var(--text-muted);">الشارة بالإنجليزية (English Badge - تترجم تلقائياً)</label>
+              <input type="text" id="bBadgeEn" class="form-control mono" placeholder="تتولد تلقائياً من الشارة العربية..." />
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 11px; color: var(--text-muted);">الوصف بالإنجليزية (English Description - يترجم تلقائياً)</label>
+              <textarea id="bDescriptionEn" class="form-control mono" rows="2" placeholder="يتولد تلقائياً من الوصف العربي..."></textarea>
+            </div>
+          </div>
+
+          <!-- PARTNER & AGENCY INTEGRATION FIELDS (Requested by User) -->
+          <div style="background: rgba(251, 135, 4, 0.08); border: 1px solid rgba(251, 135, 4, 0.25); border-radius: 12px; padding: 14px; margin-top: 6px;">
+            <div style="font-size: 13px; font-weight: 800; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              <span>بيانات لوحة تحكم الوسيط وربط الـ API الخاص بالأدمن (IB Agency Integration)</span>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 10px;">
+              <label>رابط لوحة الشريك لدى الوسيط (Partner Dashboard URL) 🔗</label>
+              <input type="url" id="bPartnerDashboardUrl" class="form-control mono" placeholder="https://partners.broker.com/login" />
+              <small style="font-size: 11px; color: var(--text-muted);">رابط تفتحه بنقرة زر لمراجعة إيداعات وعمولات الشركاء يدوياً.</small>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 10px;">
+              <label>رابط الـ API الخاص بالشريك (Partner API Check URL) ⚙️</label>
+              <input type="url" id="bPartnerApiUrl" class="form-control mono" placeholder="https://api.broker.com/v1/accounts/check" />
+              <small style="font-size: 11px; color: var(--text-muted);">الـ API المستخدم لفحص هل العميل تحت وكالتك آلياً.</small>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group">
+                <label>مفتاح الربط (Partner API Key)</label>
+                <input type="password" id="bPartnerApiKey" class="form-control mono" placeholder="sec_token_xyz..." />
+              </div>
+              <div class="form-group">
+                <label>كود الوكالة (Agency IB Code) *</label>
+                <input type="text" id="bPartnerIbCode" class="form-control mono" placeholder="مثال: KTW63" />
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+            <button type="button" class="btn btn-ghost" onclick="closeBrokerModal()">إلغاء</button>
+            <button type="submit" class="btn btn-primary">حفظ الوسيط</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Test User Modal -->
+  <div id="testUserModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box" style="max-width: 500px;">
+      <div class="modal-head">
+        <div>
+          <h3 style="font-size: 15px; font-weight: 800;">إضافة مستخدم لتجربة فحص الوكالة</h3>
+          <span style="font-size: 11.5px; color: var(--text-muted);">محاكاة إرسال متداول لرقم حسابه لتفعيل VIP</span>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="closeAddTestUserModal()">✕</button>
+      </div>
+
+      <form id="testUserForm" onsubmit="handleSaveTestUser(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>اختر الوسيط *</label>
+            <select id="tuBrokerSelect" class="form-control" required></select>
+          </div>
+
+          <div class="form-group">
+            <label>رقم حساب التداول للتجربة (MT4 / MT5) *</label>
+            <input type="text" id="tuAccountNum" class="form-control mono" placeholder="مثال: 8594020 (زوجي: مؤكد، فردي: غير مسجل)" value="8594020" required />
+            <small style="font-size: 11px; color: var(--text-muted);">نصيحة للتجربة: في السيرفر التجريبي الأرقام الزوجية تعتبر مؤكدة والفردية غير مسجلة بالوكالة.</small>
+          </div>
+
+          <div class="form-group">
+            <label>يوزر تليجرام (Telegram Username)</label>
+            <input type="text" id="tuTgUsername" class="form-control mono" placeholder="@trader_fx" value="@vip_trader" />
+          </div>
+
+          <div class="form-group">
+            <label>ملاحظة فحص داخلية (اختياري)</label>
+            <input type="text" id="tuReviewNote" class="form-control" placeholder="تجربة من لوحة التحكم" value="تجربة عبر لوحة الأدمن" />
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+            <button type="button" class="btn btn-ghost" onclick="closeAddTestUserModal()">إلغاء</button>
+            <button type="submit" class="btn btn-primary">إرسال وفحص الحساب الآن 🚀</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Configuration: Pointing to NestJS Backend API
+    const API_BASE = 'http://localhost:3000/api';
+
+    let brokersData = [];
+
+    // TRANSLATION ENGINE & AUTO-GENERATOR
+    function arWord(word) {
+      return new RegExp('(?<=^|[\\s،,.;:•])(?:ال)?' + word + '(?=$|[\\s،,.;:•])', 'gu');
+    }
+
+    const TRANSLATION_RULES = [
+      [/حاصل على أرفع التراخيص العالمية/gi, 'holding top international tier-1 licenses'],
+      [/حاصل على أرفع التراخيص/gi, 'holding top-tier licenses'],
+      [/حاصل على تراخيص/gi, 'holding licenses from'],
+      [/تنفيذ فائق السرعة بدون انزلاق سعري/gi, 'ultra-fast execution with zero slippage'],
+      [/تنفيذ فائق السرعة بدون انزلاق/gi, 'ultra-fast execution with zero slippage'],
+      [/بدون انزلاق سعري/gi, 'with zero slippage'],
+      [/بدون انزلاق/gi, 'zero slippage'],
+      [/سبريد منعدم يبدأ من 0\.0 نقطة/gi, 'raw spreads starting from 0.0 pips'],
+      [/سبريد منعدم/gi, 'zero raw spread'],
+      [/سبريد يبدأ من 0\.0 نقطة/gi, 'spreads starting from 0.0 pips'],
+      [/سبريد يبدأ من 0\.0/gi, 'spreads from 0.0 pips'],
+      [/سبريد خام يبدأ من 0\.0/gi, 'raw spreads from 0.0'],
+      [/سبريد خام/gi, 'raw spreads'],
+      [/سبريد منخفض جداً/gi, 'ultra-low spreads'],
+      [/سبريد منخفض/gi, 'low spreads'],
+      [/بدون عمولات خفية/gi, 'zero hidden fees'],
+      [/بدون عمولات/gi, 'zero commissions'],
+      [/بدون رسوم خفية/gi, 'no hidden fees'],
+      [/بدون إعادة تسعير/gi, 'zero requotes'],
+      [/تراخيص ASIC و FCA/gi, 'ASIC & FCA Regulation'],
+      [/تراخيص ورقابة عالمية/gi, 'Global Tier-1 Regulation'],
+      [/تراخيص ورقابة دولية/gi, 'International Tier-1 Regulation'],
+      [/تراخيص ورقابة/gi, 'Regulation & Licenses'],
+      [/تراخيص عالمية/gi, 'Global Regulation'],
+      [/تراخيص دولية/gi, 'International Licenses'],
+      [/تراخيص صارمة/gi, 'Strict Regulation'],
+      [/رقابة دولية/gi, 'International Regulation'],
+      [/رقابة عالمية/gi, 'Global Regulation'],
+      [arWord('تراخيص'), 'Regulation'],
+      [arWord('رقابة'), 'Regulation'],
+      [/مرخص ومنظم عالمياً/gi, 'Globally Regulated & Certified'],
+      [/مرخص من كبرى الهيئات/gi, 'Regulated by Top Authorities'],
+      [/حماية كاملة من الرصيد السالب/gi, 'full negative balance protection'],
+      [/حماية من الرصيد السالب/gi, 'negative balance protection'],
+      [/فصل كامل لأموال العملاء/gi, 'strict segregation of client funds'],
+      [/فصل أموال العملاء/gi, 'segregated client funds'],
+      [/أمان واستقرار/gi, 'security & stability'],
+      [/تنفيذ فائق السرعة للأوامر/gi, 'ultra-fast order execution'],
+      [/تنفيذ فائق السرعة/gi, 'ultra-fast execution'],
+      [/تنفيذ سريع للأوامر/gi, 'fast order execution'],
+      [/تنفيذ سريع/gi, 'fast execution'],
+      [/سرعة تنفيذ فائقة/gi, 'high-speed execution'],
+      [/سرعة التنفيذ/gi, 'execution speed'],
+      [/أقصى رافعة مالية/gi, 'max leverage'],
+      [/رافعة مالية تصل إلى/gi, 'leverage up to'],
+      [/رافعة مالية غير محدودة/gi, 'unlimited leverage'],
+      [/رافعة مالية قياسية/gi, 'high leverage'],
+      [/رافعة مالية فائقة/gi, 'ultra-high leverage'],
+      [/رافعة مالية ديناميكية/gi, 'dynamic leverage'],
+      [/رافعة مالية مرنة/gi, 'flexible leverage'],
+      [/رافعة مالية/gi, 'leverage'],
+      [/حسابات إسلامية خالية تماماً من الفوائد الربوية ورسوم التبييت/gi, 'Certified 100% Swap-Free Islamic Accounts'],
+      [/حسابات إسلامية 100% Swap-Free/gi, '100% Swap-Free Islamic Accounts'],
+      [/حسابات إسلامية خالية من الفوائد/gi, 'Swap-Free Islamic Accounts'],
+      [/حسابات إسلامية بدون رسوم تبييت/gi, 'Swap-Free Islamic Accounts'],
+      [/حسابات إسلامية/gi, 'Islamic Accounts'],
+      [/حساب إسلامي/gi, 'Islamic Account'],
+      [/خالية من التبييت/gi, 'Swap-Free'],
+      [/بدون فوائد تبييت/gi, 'Swap-Free'],
+      [/بونص إيداع 100%/gi, '100% deposit bonus'],
+      [/بونص 100%/gi, '100% bonus'],
+      [/بونص 50%/gi, '50% bonus'],
+      [/بونص 30%/gi, '30% bonus'],
+      [/بونص إيداع/gi, 'deposit bonus'],
+      [/بونص ترحيبي/gi, 'welcome bonus'],
+      [arWord('بونص'), 'bonus'],
+      [/الحد الأدنى للبونص/gi, 'minimum bonus deposit'],
+      [/الحد الأدنى للإيداع/gi, 'minimum deposit'],
+      [/إيداع من/gi, 'deposit from'],
+      [/سحب وإيداع فوري/gi, 'instant deposit & withdrawal'],
+      [/سحب وإيداع محلي/gi, 'local deposit & withdrawal'],
+      [/خيارات سحب وإيداع/gi, 'deposit & withdrawal options'],
+      [/سحب فوري/gi, 'instant withdrawal'],
+      [/إيداع فوري/gi, 'instant deposit'],
+      [/بالعملات المحلية/gi, 'in local currencies'],
+      [/دعم عملاء متواصل 24\/7/gi, '24/7 client support'],
+      [/دعم فني متواصل 24\/7/gi, '24/7 technical support'],
+      [/دعم عملاء 24\/7/gi, '24/7 customer support'],
+      [/دعم متواصل 24\/7/gi, '24/7 continuous support'],
+      [/دعم فني/gi, 'technical support'],
+      [/خدمة عملاء ممتازة/gi, 'excellent client service'],
+      [/على مدار الساعة/gi, 'around the clock'],
+      [/وسطاء الفوركس والسلع/gi, 'Forex & Commodities'],
+      [/وسطاء الفوركس/gi, 'Forex Brokers'],
+      [/شركات التمويل/gi, 'Prop Trading Firms'],
+      [/شركة تمويل متداولين/gi, 'Prop Trading Firm'],
+      [/شركة تمويل/gi, 'Prop Trading Firm'],
+      [/منصات العملات الرقمية/gi, 'Crypto Exchanges'],
+      [/عملات رقمية/gi, 'Crypto'],
+      [/أكثر من (\d[\d,]*)\s*أداة مالية/gi, 'over $1 financial instruments'],
+      [/أكثر من (\d[\d,]*)/gi, 'over $1'],
+      [/تنوع ضخم/gi, 'huge variety'],
+      [/أداة مالية/gi, 'financial instruments'],
+      [/أدوات مالية/gi, 'financial instruments'],
+      [/المنصات/gi, 'Trading Platforms'],
+      [/حسابات تمويل فورية/gi, 'instant funded accounts'],
+      [/حسابات تمويل حتى/gi, 'funded accounts up to'],
+      [/حسابات تمويل/gi, 'funded accounts'],
+      [/تمويل حتى/gi, 'funding up to'],
+      [/تقاسم أرباح يصل إلى/gi, 'profit split up to'],
+      [/تقاسم أرباح/gi, 'profit split'],
+      [/تحدي التداول/gi, 'trading challenge'],
+      [/بدون قيود زمنية/gi, 'no time limits'],
+      [/الوسيط العالمي الرائد/gi, 'Leading global broker'],
+      [/وسيط عالمي رائد/gi, 'Leading global broker'],
+      [/وسيط عالمي مرخص/gi, 'Licensed global broker'],
+      [/وسيط عالمي/gi, 'Global broker'],
+      [/وسيط رائد/gi, 'Leading broker'],
+      [/إشارات وتوصيات VIP مجانية فور الإيداع/gi, 'free VIP signals upon deposit'],
+      [/إشارات وتوصيات VIP مجانية/gi, 'free VIP signals'],
+      [/إشارات وتوصيات VIP/gi, 'VIP signals'],
+      [/قناة توصيات الـ VIP/gi, 'VIP signals channel'],
+      [/كود الشريك:/gi, 'Partner Code:'],
+      [/كود الوكالة:/gi, 'Agency Code:'],
+      [/كود الشريك/gi, 'Partner Code'],
+      [/كود الوكالة/gi, 'Agency Code'],
+      [/فور الإيداع/gi, 'upon deposit'],
+      [/عند الإيداع/gi, 'on deposit'],
+      [/عند إيداع/gi, 'on deposit of'],
+      [/فما فوق/gi, 'and above'],
+      [arWord('دولار'), 'USD'],
+      [arWord('المتداولين'), 'traders'],
+      [arWord('المتداول'), 'trader'],
+      [arWord('يوفر'), 'offers'],
+      [arWord('توفر'), 'offers'],
+      [arWord('تقدم'), 'provides'],
+      [arWord('يقدم'), 'provides'],
+      [arWord('يتميز'), 'features'],
+      [arWord('تتميز'), 'features'],
+      [arWord('مع'), 'with'],
+      [arWord('بدون'), 'without'],
+      [arWord('إلى'), 'to'],
+      [arWord('من'), 'from'],
+      [arWord('في'), 'in'],
+      [arWord('على'), 'on'],
+      [arWord('عالمياً'), 'globally'],
+      [arWord('دولياً'), 'internationally'],
+      [arWord('محلياً'), 'locally'],
+      [arWord('مجاناً'), 'for free'],
+      [arWord('مجانياً'), 'free'],
+      [arWord('نقاط'), 'pips'],
+      [arWord('نقطة'), 'pips'],
+    ];
+
+    function autoTranslate(text) {
+      if (!text || typeof text !== 'string') return '';
+      const trimmed = text.trim();
+      if (!trimmed || !/[\u0600-\u06FF]/.test(trimmed)) return trimmed;
+
+      let res = trimmed;
+      for (const [k, v] of TRANSLATION_RULES) res = res.replace(k, v);
+      res = res
+        .replace(/\s+و(?=[a-zA-Z])/g, ' and ')
+        .replace(/\s+و\s+/g, ' and ')
+        .replace(/^و\s+/g, '')
+        .replace(/\s*،\s*/g, ', ')
+        .replace(/\s*•\s*/g, ' • ')
+        .replace(/\s*,\s*/g, ', ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (res.length > 0) res = res.charAt(0).toUpperCase() + res.slice(1);
+      return res;
+    }
+
+    function getCatNames(cat) {
+      cat = (cat || 'forex').toLowerCase();
+      if (cat === 'prop') return { ar: 'شركات التمويل', en: 'Prop Trading Firms' };
+      if (cat === 'crypto') return { ar: 'منصات العملات الرقمية', en: 'Crypto Exchanges' };
+      return { ar: 'وسطاء الفوركس والسلع', en: 'Forex & Commodities' };
+    }
+
+    let vipRequestsData = [];
+
+    // 1. Initialize
+    
+    // Realtime Auto-Translation Sync in Admin Modal
+    window.addEventListener('DOMContentLoaded', () => {
+      const bBadgeArInput = document.getElementById('bBadgeAr');
+      const bDescArInput = document.getElementById('bDescriptionAr');
+      const bBadgeEnInput = document.getElementById('bBadgeEn');
+      const bDescEnInput = document.getElementById('bDescriptionEn');
+
+      if (bBadgeArInput && bBadgeEnInput) {
+        bBadgeArInput.addEventListener('input', () => {
+          bBadgeEnInput.value = autoTranslate(bBadgeArInput.value);
+        });
+      }
+      if (bDescArInput && bDescEnInput) {
+        bDescArInput.addEventListener('input', () => {
+          bDescEnInput.value = autoTranslate(bDescArInput.value);
+        });
+      }
+    });
+  
+    window.addEventListener('DOMContentLoaded', () => {
+      checkBackendHealth();
+      loadAllData();
+      setInterval(checkBackendHealth, 15000); // Heartbeat every 15s
+    });
+
+    async function checkBackendHealth() {
+      const dot = document.getElementById('backendStatusDot');
+      const text = document.getElementById('backendStatusText');
+      try {
+        const res = await fetch(`${API_BASE}/admin/stats`, { signal: AbortSignal.timeout(3000) });
+        if (res.ok) {
+          dot.className = 'status-dot';
+          text.textContent = 'متصل بالباك إند (NestJS Online)';
+        } else {
+          throw new Error();
+        }
+      } catch {
+        dot.className = 'status-dot offline';
+        text.textContent = 'الباك إند غير متصل (تأكد من تشغيل npm run start:dev)';
+      }
+    }
+
+    async function loadAllData() {
+      await Promise.all([loadStats(), loadBrokers(), loadVipRequests()]);
+    }
+
+    // 2. Load Stats
+    async function loadStats() {
+      try {
+        const res = await fetch(`${API_BASE}/admin/stats`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          const d = json.data;
+          document.getElementById('metricTotalBrokers').textContent = d.brokers.total;
+          document.getElementById('metricTotalVip').textContent = d.vipRequests.total;
+          document.getElementById('metricVerifiedVip').textContent = d.vipRequests.verifiedUnderAgency;
+          document.getElementById('metricPendingVip').textContent = d.vipRequests.pending;
+        }
+      } catch (err) {
+        console.warn('Stats fetch error:', err);
+      }
+    }
+
+    // 3. Load Brokers
+    async function loadBrokers() {
+      const tbody = document.getElementById('brokersTableBody');
+      const simSelect = document.getElementById('simBrokerSelect');
+      try {
+        const res = await fetch(`${API_BASE}/admin/brokers`);
+        const json = await res.json();
+        brokersData = json.data || [];
+
+        if (brokersData.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">لا يوجد وسطاء مسجلين حتى الآن.</td></tr>`;
+          return;
+        }
+
+        // Fill simulator select
+        simSelect.innerHTML = brokersData.map(b => `<option value="${b.id}">${b.name} (${b.slug}) - IB: ${b.partnerIbCode || 'غير محدد'}</option>`).join('');
+
+        tbody.innerHTML = brokersData.map(b => {
+          const dashBtn = b.partnerDashboardUrl
+            ? `<a href="${b.partnerDashboardUrl}" target="_blank" class="btn btn-secondary btn-sm" title="فتح لوحة الشريك">
+                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/></svg>
+                 <span>لوحة الشريك</span>
+               </a>`
+            : `<span style="color: var(--text-dim); font-size: 11px;">غير محدد</span>`;
+
+          const apiTag = b.partnerApiUrl
+            ? `<span class="tag tag-success">مدعوم تلقائياً (API)</span>`
+            : `<span class="tag tag-warning">فحص يدوي (Manual)</span>`;
+
+          return `
+            <tr>
+              <td>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 32px; height: 32px; border-radius: 6px; background: ${b.logoBg || '#000'}; padding: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <img src="${b.logo}" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="${b.name}" />
+                  </div>
+                  <div>
+                    <div style="font-weight: 800;">${b.name}</div>
+                    <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">${b.slug}</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="tag tag-blue">${b.category}</span></td>
+              <td><span style="font-family: var(--font-mono); font-weight: 700; color: var(--accent);">${b.partnerIbCode || '—'}</span></td>
+              <td>${dashBtn}</td>
+              <td>${apiTag}</td>
+              <td>
+                <div style="display: flex; gap: 6px;">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="testBrokerApi('${b.id}', '${b.name}')" title="اختبار دالة الفحص">🧪 فحص API</button>
+                  <button type="button" class="btn btn-ghost btn-sm" onclick="openEditBrokerModal('${b.id}')" title="تعديل">✏️</button>
+                  <button type="button" class="btn btn-ghost btn-sm" onclick="deleteBroker('${b.id}', '${b.name}')" title="حذف" style="color: var(--error);">🗑️</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--error); padding: 30px;">تعذر الاتصال بالسيرفر. تأكد من تشغيل الباك إند.</td></tr>`;
+      }
+    }
+
+    // 4. Load VIP Requests
+    async function loadVipRequests() {
+      const tbody = document.getElementById('vipTableBody');
+      const filter = document.getElementById('vipFilterStatus').value;
+      const url = filter ? `${API_BASE}/admin/vip-requests?status=${filter}` : `${API_BASE}/admin/vip-requests`;
+
+      try {
+        const res = await fetch(url);
+        const json = await res.json();
+        vipRequestsData = json.data || [];
+
+        if (vipRequestsData.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">لا توجد طلبات تفعيل VIP حتى الآن.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = vipRequestsData.map(r => {
+          let badgeClass = 'tag-warning';
+          let statusText = 'قيد المراجعة';
+          if (r.status === 'VERIFIED_UNDER_AGENCY') {
+            badgeClass = 'tag-success';
+            statusText = 'مؤكد تحت الوكالة';
+          } else if (r.status === 'APPROVED') {
+            badgeClass = 'tag-blue';
+            statusText = 'مفعل ومعتمد (VIP Active)';
+          } else if (r.status === 'NOT_UNDER_AGENCY') {
+            badgeClass = 'tag-error';
+            statusText = 'غير مسجل بالوكالة';
+          }
+
+          const dashLink = r.broker?.partnerDashboardUrl 
+            ? `<a href="${r.broker.partnerDashboardUrl}" target="_blank" class="btn btn-ghost btn-sm" title="فتح لوحة الوسيط">🔗 الداشبورد</a>` 
+            : '';
+
+          return `
+            <tr>
+              <td><span style="font-family: var(--font-mono); font-weight: 800; font-size: 14px; color: var(--text-main);">${r.accountNumber}</span></td>
+              <td><strong>${r.broker?.name || 'غير معروف'}</strong></td>
+              <td><span style="font-family: var(--font-mono); color: var(--primary);">${r.telegramUsername || '—'}</span></td>
+              <td><span class="tag ${badgeClass}">${statusText}</span></td>
+              <td><div style="max-width: 260px; font-size: 11.5px; color: var(--text-muted); line-height: 1.4;">${r.verificationResponse?.message || '—'}</div></td>
+              <td style="font-size: 11px; color: var(--text-dim);">${new Date(r.createdAt).toLocaleString('ar-EG')}</td>
+              <td>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="recheckVipRequest('${r.id}')" title="إعادة تشغيل الفحص الآلي">🔄 إعادة فحص</button>
+                  ${dashLink}
+                  ${r.status !== 'APPROVED' ? `<button type="button" class="btn btn-primary btn-sm" onclick="updateVipStatus('${r.id}', 'APPROVED')">✅ تفعيل</button>` : ''}
+                  ${r.status !== 'REJECTED' ? `<button type="button" class="btn btn-ghost btn-sm" onclick="updateVipStatus('${r.id}', 'REJECTED')" style="color: var(--error);">❌ رفض</button>` : ''}
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--error); padding: 30px;">تعذر جلب طلبات الـ VIP.</td></tr>`;
+      }
+    }
+
+    // 5. Actions: Re-check agency, Approve, Reject
+    async function recheckVipRequest(id) {
+      showToast('جاري إعادة فحص الحساب برمجياً عبر API الوسيط...');
+      try {
+        const res = await fetch(`${API_BASE}/admin/vip-requests/${id}/recheck`, { method: 'POST' });
+        const json = await res.json();
+        showToast(json.data?.message || 'تم تحديث الفحص بنجاح!');
+        loadAllData();
+      } catch (err) {
+        showToast('حدث خطأ أثناء فحص الحساب');
+      }
+    }
+
+    async function updateVipStatus(id, status) {
+      const note = prompt(status === 'APPROVED' ? 'ملاحظات الاعتماد (اختياري):' : 'سبب الرفض (اختياري):');
+      try {
+        await fetch(`${API_BASE}/admin/vip-requests/${id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status, reviewedBy: 'Admin', reviewNote: note })
+        });
+        showToast(`تم تحديث حالة الطلب إلى ${status}`);
+        loadAllData();
+      } catch (err) {
+        showToast('حدث خطأ أثناء التحديث');
+      }
+    }
+
+    // 6. Test Broker API
+    async function testBrokerApi(brokerId, name) {
+      const acc = prompt(`أدخل رقم حساب تجريبي لاختباره مع API وسيط ${name}:`, '8594021');
+      if (!acc) return;
+      showToast(`جاري الاتصال بـ API وسيط ${name}...`);
+      try {
+        const res = await fetch(`${API_BASE}/admin/brokers/${brokerId}/test-partner-api?testAccount=${acc}`, { method: 'POST' });
+        const json = await res.json();
+        alert(`نتيجة الفحص:\nالحالة: ${json.data?.status}\nالرسالة: ${json.data?.message}\nتحت الوكالة: ${json.data?.isUnderAgency ? 'نعم ✅' : 'لا ❌'}`);
+      } catch (err) {
+        alert('تعذر الاتصال بـ API الوسيط');
+      }
+    }
+
+    // 7. Test Simulator Tab
+    async function handleTestAgencyCheck(e) {
+      e.preventDefault();
+      const brokerId = document.getElementById('simBrokerSelect').value;
+      const acc = document.getElementById('simAccountNumber').value;
+      const resBox = document.getElementById('simResultJson');
+      resBox.textContent = 'جاري إرسال الطلب وتشغيل دالة checkAccountUnderAgency...';
+
+      try {
+        const res = await fetch(`${API_BASE}/admin/brokers/${brokerId}/test-partner-api?testAccount=${acc}`, { method: 'POST' });
+        const json = await res.json();
+        resBox.textContent = JSON.stringify(json.data, null, 2);
+        showToast('اكتمل فحص الحساب بنجاح');
+      } catch (err) {
+        resBox.textContent = `خطأ: ${err.message}`;
+      }
+    }
+
+
+    // --- Helper: Fill Sample Broker Data for 1-Click Testing ---
+    function fillSampleBrokerData() {
+      document.getElementById('bName').value = 'Vantage Markets';
+      document.getElementById('bSlug').value = 'vantage_' + Math.floor(Math.random() * 1000);
+      document.getElementById('bCategory').value = 'forex';
+      document.getElementById('bRating').value = '4.90';
+      document.getElementById('bLogo').value = 'https://fxengi.vercel.app/assets/Images/Logo/logo.png';
+      document.getElementById('bBadgeAr').value = 'تراخيص ASIC و FCA • سبريد يبدأ من 0.0 نقطة';
+      document.getElementById('bAffiliateRealLink').value = 'https://www.vantagemarkets.com/forex-trading/open-live-account/?affid=FXENGIN_VIP';
+      document.getElementById('bDescriptionAr').value = 'وسيط رائد حاصل على أرفع التراخيص العالمية، يوفر سبريد منعدم يبدأ من 0.0 نقطة وتنفيذ فائق السرعة بدون انزلاق سعري.';
+      document.getElementById('bPartnerDashboardUrl').value = 'https://partners.vantagemarkets.com';
+      document.getElementById('bPartnerApiUrl').value = 'https://api.pipaffiliates.com/v1/accounts/check?mode=test';
+      document.getElementById('bPartnerApiKey').value = 'sec_vant_demo_token_8899';
+      document.getElementById('bPartnerIbCode').value = 'FXENGIN_VIP';
+      showToast('تمت تعبئة بيانات تجريبية لوسيط جديد بنجاح! اضغط حفظ لإضافته.');
+    }
+
+    // --- Modal: Add Test User VIP Request ---
+    function openAddTestUserModal() {
+      const select = document.getElementById('tuBrokerSelect');
+      if (select && brokersData.length > 0) {
+        select.innerHTML = brokersData.map(b => `<option value="${b.id}">${b.name} (${b.slug})</option>`).join('');
+      }
+      document.getElementById('testUserModal').style.display = 'flex';
+    }
+
+    function closeAddTestUserModal() {
+      document.getElementById('testUserModal').style.display = 'none';
+    }
+
+    async function handleSaveTestUser(e) {
+      e.preventDefault();
+      const brokerId = document.getElementById('tuBrokerSelect').value;
+      const accountNumber = document.getElementById('tuAccountNum').value.trim();
+      const telegramUsername = document.getElementById('tuTgUsername').value.trim();
+      const reviewNote = document.getElementById('tuReviewNote').value.trim();
+
+      showToast('جاري إرسال الحساب وفحصه عبر checkAccountUnderAgency...');
+      try {
+        const res = await fetch(`${API_BASE}/vip/verify-request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            brokerIdOrSlug: brokerId,
+            accountNumber,
+            telegramUsername,
+            reviewNote
+          })
+        });
+        const json = await res.json();
+        if (res.ok && json.success) {
+          showToast(`تم فحص الحساب! الحالة: ${json.data?.status || 'PENDING'}`);
+          closeAddTestUserModal();
+          loadAllData();
+        } else {
+          alert('خطأ: ' + (json.error?.message || 'تعذر إضافة المستخدم'));
+        }
+      } catch (err) {
+        alert('تعذر الاتصال بالباك إند');
+      }
+    }
+
+    // 8. Add / Edit Broker Modal Logic
+    function openAddBrokerModal() {
+      document.getElementById('modalTitle').textContent = 'إضافة وسيط جديد إلى المنصة';
+      document.getElementById('brokerEditId').value = '';
+      document.getElementById('brokerForm').reset();
+      document.getElementById('bAffiliateRealLink').value = '';
+      document.getElementById('bDescriptionAr').value = '';
+      if (document.getElementById('bBadgeEn')) document.getElementById('bBadgeEn').value = '';
+      if (document.getElementById('bDescriptionEn')) document.getElementById('bDescriptionEn').value = '';
+      document.getElementById('brokerModal').style.display = 'flex';
+    }
+
+    function openEditBrokerModal(id) {
+      const b = brokersData.find(item => item.id === id);
+      if (!b) return;
+      document.getElementById('modalTitle').textContent = `تعديل بيانات وسيط: ${b.name}`;
+      document.getElementById('brokerEditId').value = b.id;
+      document.getElementById('bName').value = b.name || '';
+      document.getElementById('bSlug').value = b.slug || '';
+      document.getElementById('bCategory').value = b.category || 'forex';
+      document.getElementById('bRating').value = b.rating || 4.9;
+      document.getElementById('bLogo').value = b.logo || '';
+      document.getElementById('bBadgeAr').value = b.badgeAr || '';
+      document.getElementById('bAffiliateRealLink').value = b.affiliateRealLink || '';
+      document.getElementById('bDescriptionAr').value = b.descriptionAr || b.description || '';
+      if (document.getElementById('bBadgeEn')) document.getElementById('bBadgeEn').value = b.badgeEn || autoTranslate(b.badgeAr || '');
+      if (document.getElementById('bDescriptionEn')) document.getElementById('bDescriptionEn').value = b.descriptionEn || autoTranslate(b.descriptionAr || '');
+      document.getElementById('bPartnerDashboardUrl').value = b.partnerDashboardUrl || '';
+      document.getElementById('bPartnerApiUrl').value = b.partnerApiUrl || '';
+      document.getElementById('bPartnerApiKey').value = b.partnerApiKey || '';
+      document.getElementById('bPartnerIbCode').value = b.partnerIbCode || '';
+      document.getElementById('brokerModal').style.display = 'flex';
+    }
+
+    function closeBrokerModal() {
+      document.getElementById('brokerModal').style.display = 'none';
+    }
+
+    async function handleSaveBroker(e) {
+      e.preventDefault();
+      const editId = document.getElementById('brokerEditId').value;
+      const badgeAr = document.getElementById('bBadgeAr').value.trim();
+      const badgeEn = (document.getElementById('bBadgeEn')?.value?.trim()) || autoTranslate(badgeAr);
+      const descAr = document.getElementById('bDescriptionAr').value.trim();
+      const descEn = (document.getElementById('bDescriptionEn')?.value?.trim()) || autoTranslate(descAr);
+      const category = document.getElementById('bCategory').value;
+      const catNames = getCatNames(category);
+
+      const payload = {
+        name: document.getElementById('bName').value,
+        slug: document.getElementById('bSlug').value,
+        category: category,
+        categoryNameAr: catNames.ar,
+        categoryNameEn: catNames.en,
+        rating: parseFloat(document.getElementById('bRating').value) || 4.9,
+        logo: document.getElementById('bLogo').value,
+        badgeAr: badgeAr,
+        badgeEn: badgeEn,
+        affiliateRealLink: document.getElementById('bAffiliateRealLink').value,
+        descriptionAr: descAr,
+        descriptionEn: descEn,
+        partnerDashboardUrl: document.getElementById('bPartnerDashboardUrl').value,
+        partnerApiUrl: document.getElementById('bPartnerApiUrl').value,
+        partnerApiKey: document.getElementById('bPartnerApiKey').value,
+        partnerIbCode: document.getElementById('bPartnerIbCode').value,
+      };
+
+      try {
+        const url = editId ? `${API_BASE}/admin/brokers/${editId}` : `${API_BASE}/admin/brokers`;
+        const method = editId ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (res.ok) {
+          showToast(editId ? 'تم تعديل الوسيط بنجاح!' : 'تم إضافة الوسيط بنجاح!');
+          closeBrokerModal();
+          loadAllData();
+        } else {
+          alert('خطأ أثناء الحفظ: ' + (json.error?.message || 'تأكد من عدم تكرار الـ slug'));
+        }
+      } catch (err) {
+        alert('تعذر الاتصال بالباك إند');
+      }
+    }
+
+    async function deleteBroker(id, name) {
+      if (!confirm(`هل أنت متأكد من حذف الوسيط: ${name}؟`)) return;
+      try {
+        await fetch(`${API_BASE}/admin/brokers/${id}`, { method: 'DELETE' });
+        showToast(`تم حذف ${name} بنجاح`);
+        loadAllData();
+      } catch (err) {
+        showToast('تعذر الحذف');
+      }
+    }
+
+    // Tabs Switcher
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).style.display = 'block';
+      event.currentTarget.classList.add('active');
+    }
+
+    // Toast
+    function showToast(msg) {
+      const existing = document.querySelector('.toast');
+      if (existing) existing.remove();
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.innerHTML = `<span>⚡</span><span>${msg}</span>`;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 4000);
+    }
+  </script>
+</body>
+</html>
